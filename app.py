@@ -18,8 +18,8 @@ st.title(':orange[_Exercise_] :blue[_is all you_] :green[_need_] :runner:')
 # st.markdown('***Hello world!***')
 st.subheader('Upload your workout video and prompt for a suggestion', divider='blue')
 prompt = st.chat_input("Enter input prompt...")
-# if prompt:
-#     st.write(f"User has sent the following prompt: {prompt}")
+if prompt:
+    st.write(f"User has sent the following prompt: {prompt}")
 # st.write('Running Streamlit')
 
 # st.button("Generate output", type="primary")
