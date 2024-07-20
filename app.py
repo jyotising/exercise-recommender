@@ -76,8 +76,7 @@ model = genai.GenerativeModel(model_to_use)
 
 # Make the LLM request.
 # print("Making LLM inference request...")
-response = model.generate_content([prompt],
-                                  request_options={"timeout": 600})
+response = model.generate_content(prompt)
 # print(response.text)
 
 st.write(response.text)
