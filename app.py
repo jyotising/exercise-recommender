@@ -12,7 +12,7 @@ import PIL.Image
 #     text = text.replace('•', '  *')
 #     return Markdown(textwrap.indent(text, '> ', predicate= lambda _: True))
 
-google_api_key = 'AIzaSyBD7mFBuZXkYdoTlZi5EhArFtEpN2pxgzU'
+google_api_key = st.secrets["general"]["api_key"]
 
 genai.configure(api_key=google_api_key)
 
