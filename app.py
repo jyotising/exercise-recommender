@@ -57,7 +57,7 @@ st.subheader('Upload your workout video and prompt for a suggestion', divider='b
 
 
 # Setting the input prompt
-prompt = st.chat_input("Enter input prompt...")
+prompt = st.chat_input("Enter input prompt...") or "Hi Gemini"
 # if prompt:
 #     st.write(f"User has sent the following prompt: {prompt}")
 
