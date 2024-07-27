@@ -64,7 +64,7 @@ st.subheader('Get a suggestion for your workout', divider='blue')
 model_to_use = st.sidebar.selectbox(label='Choose your model',options=['gemini-1.5-pro','gemini-1.5-flash'])
 
 # Temperature setting to be used
-temp = st.sidebar.select_slider('Temperature, *(increasing this makes responses more random)*',options=[0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],value=0.0)
+temp = st.sidebar.select_slider('Temperature, *(increasing this will get you more creative outputs)*',options=[0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.2,1.5,1.7,2.0],value=0.0)
 
 # This is the uploaded file
 vfile = st.sidebar.file_uploader("Upload your workout video for suggestion")
