@@ -186,7 +186,7 @@ st.markdown(html_content, unsafe_allow_html=True)
 
 
 # Model to be chosen for running the app
-model_to_use = st.sidebar.selectbox(label='Choose your model',options=['gemini-1.5-pro','gemini-1.5-flash'])
+model_to_use = st.sidebar.selectbox(label='Choose your model',options=['gemini-1.5-flash','gemini-1.5-pro'])
 
 # Temperature setting to be used
 temp = st.sidebar.select_slider('Temperature, *(increasing this will get you more creative outputs)*',options=[0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.2,1.5,1.7,2.0],value=0.0)
