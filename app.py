@@ -192,26 +192,46 @@ model_to_use = st.sidebar.selectbox(label='Choose your model',options=['gemini-1
 temp = st.sidebar.select_slider('Temperature, *(increasing this will get you more creative outputs)*',options=[0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.2,1.5,1.7,2.0],value=0.0)
 
 # This is the uploaded file
-vfile = st.sidebar.file_uploader("Upload your workout video for suggestion")
+if model_to_use != 'gemini-1.0-pro (supports text only)':
+    vfile = st.sidebar.file_uploader("Upload your workout video for suggestion")
 
-if vfile is not None:
-    # Save the uploaded file to a temporary directory
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
-        temp_file.write(vfile.read())
-        video_path = temp_file.name
-        # st.write(f"Video saved to temporary file: {video_path}")
+    if vfile is not None:
+        # Save the uploaded file to a temporary directory
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
+            temp_file.write(vfile.read())
+            video_path = temp_file.name
+            # st.write(f"Video saved to temporary file: {video_path}")
         
-        # st.write(f"Uploading file...")
-        video_file = genai.upload_file(path=video_path)
-        # st.write(f"Completed upload: {video_file.uri}")
+            # st.write(f"Uploading file...")
+            video_file = genai.upload_file(path=video_path)
+            # st.write(f"Completed upload: {video_file.uri}")
         
-        while video_file.state.name == "PROCESSING":
-            print('.', end='')
-            time.sleep(10)
-            video_file = genai.get_file(video_file.name)
+            while video_file.state.name == "PROCESSING":
+                print('.', end='')
+                time.sleep(10)
+                video_file = genai.get_file(video_file.name)
             
-        if video_file.state.name == "FAILED":
-            raise ValueError(video_file.state.name)
+            if video_file.state.name == "FAILED":
+                raise ValueError(video_file.state.name)
+
+# if vfile is not None:
+#     # Save the uploaded file to a temporary directory
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
+#         temp_file.write(vfile.read())
+#         video_path = temp_file.name
+#         # st.write(f"Video saved to temporary file: {video_path}")
+        
+#         # st.write(f"Uploading file...")
+#         video_file = genai.upload_file(path=video_path)
+#         # st.write(f"Completed upload: {video_file.uri}")
+        
+#         while video_file.state.name == "PROCESSING":
+#             print('.', end='')
+#             time.sleep(10)
+#             video_file = genai.get_file(video_file.name)
+            
+#         if video_file.state.name == "FAILED":
+#             raise ValueError(video_file.state.name)
 
 model_to_use = 'gemini-1.0-pro' if model_to_use == 'gemini-1.0-pro (supports text only)' else model_to_use 
 
@@ -274,8 +294,17 @@ Also if the person aks about on how to use the app, tell the person that they ca
 and an input prompt to get suggestion about their exercise or just ask something related to exercise.
 """
 
+p5 = """
+Hi Gemini! You are a Gym instructor and you need to give suggestions based on which type of exercise the person asks about.
+You need not ask follow up questions, try to give your best response based on a single user input
+
+Only tell that you are a Gym Instructor if the person asks you about yourself.
+Also if the person aks about on how to use the app, tell the person that they can ask questions regarding their workout
+to get suggestion based on it or just ask anything related to an exercise.
+"""
+
 # Setting the input prompt
-prompt_0 = p4
+prompt_0 = p5 if model_to_use == 'gemini-1.0-pro' else p4
 prompt_1 = "Respond as if you are a Gym Instructor"
 # response_1 = model.generate_content(prompt_1, stream=True)
 response_1 = model.generate_content(prompt_1)
@@ -294,17 +323,24 @@ if prompt_2 is not None:
 
 # st.write(len(prompt_2))
 
-
-if prompt_2 is None:
-    st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_1.text, unsafe_allow_html=True)
-elif prompt_2 is not None and vfile is None:
-    prompt_2 = prompt_0 + " " + prompt_2
-    response_2 = model.generate_content(prompt_2)
-    st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
-elif prompt_2 is not None and vfile is not None:
-    prompt_2 = prompt_0 + " " + prompt_2
-    response_2 = model.generate_content([prompt_2, video_file], request_options={"timeout": 600})
-    st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
+if model_to_use != 'gemini-1.0-pro':
+    if prompt_2 is None:
+        st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_1.text, unsafe_allow_html=True)
+    elif prompt_2 is not None and vfile is None:
+        prompt_2 = prompt_0 + " " + prompt_2
+        response_2 = model.generate_content(prompt_2)
+        st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
+    elif prompt_2 is not None and vfile is not None:
+        prompt_2 = prompt_0 + " " + prompt_2
+        response_2 = model.generate_content([prompt_2, video_file], request_options={"timeout": 600})
+        st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
+else:
+    if prompt_2 is None:
+        st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_1.text, unsafe_allow_html=True)
+    elif prompt_2 is not None:
+        prompt_2 = prompt_0 + " " + prompt_2
+        response_2 = model.generate_content(prompt_2)
+        st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
 
 
 
