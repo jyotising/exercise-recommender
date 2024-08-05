@@ -315,7 +315,7 @@ prompt_2 = st.chat_input("Ask anything regarding your workout...")
 
 if prompt_2 is not None:
     # st.markdown("<div style='text-align: right;'><b style='color:blue;'>User:</b></div>" + " " + prompt_2, unsafe_allow_html=True)
-    st.markdown("<b style='color:#2491F9;'>User:</b>" + " " + prompt_2, unsafe_allow_html=True)
+    st.markdown("<b style='color:#2491F9;'>Me:</b>" + " " + prompt_2, unsafe_allow_html=True)
     # st.write("**User:**" + " " + prompt_2)
     # st.write("__User:__" + prompt_2)
     # st.write(prompt_2)
