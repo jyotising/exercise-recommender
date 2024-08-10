@@ -53,7 +53,7 @@ selected_model = st.sidebar.selectbox(label='Choose your model',options=['gemini
 # Checking if the model has changed
 if selected_model != st.session_state.selected_model:
     st.session_state.selected_model = selected_model
-    reset_conversation()  # Reset the conversation history
+    reset_conversation()  # Resetting the conversation history
 
 # Temperature setting to be used
 if selected_model == 'gemini-1.0-pro (supports text only)':
@@ -200,7 +200,7 @@ if model_to_use == 'gemini-1.0-pro':
     if user_prompt is not None:
         chat_history = "\n".join([f"User: {entry['prompt']}\nAI: {entry['response']}" for entry in st.session_state.conversation])
         full_prompt = f"{p5}\n{chat_history}\nUser: {user_prompt}"
-        response = model.generate_content(user_prompt)
+        response = model.generate_content(full_prompt)
         add_to_conversation(user_prompt,response.text)
         # st.session_state.conversation.append({"prompt": user_prompt, "response": response.text})
 
@@ -228,7 +228,7 @@ else:
     if user_prompt is not None and vfile is None:
         chat_history = "\n".join([f"User: {entry['prompt']}\nAI: {entry['response']}" for entry in st.session_state.conversation])
         full_prompt = f"{chat_history}\nUser: {user_prompt}"
-        response = model.generate_content(user_prompt)
+        response = model.generate_content(full_prompt)
         add_to_conversation(user_prompt,response.text)
         # prompt_2 = prompt_0 + " " + prompt_2
         # response_2 = model.generate_content(prompt_2)
@@ -236,7 +236,7 @@ else:
     elif user_prompt is not None and vfile is not None:
         chat_history = "\n".join([f"User: {entry['prompt']}\nAI: {entry['response']}" for entry in st.session_state.conversation])
         full_prompt = f"{chat_history}\nUser: {user_prompt}"
-        response = model.generate_content([user_prompt, video_file], request_options={"timeout": 600})
+        response = model.generate_content([full_prompt, video_file], request_options={"timeout": 600})
         add_to_conversation(user_prompt,response.text)
         # prompt_2 = prompt_0 + " " + prompt_2
         # response_2 = model.generate_content([prompt_2, video_file], request_options={"timeout": 600})
