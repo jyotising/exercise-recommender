@@ -198,8 +198,10 @@ if model_to_use == 'gemini-1.0-pro':
     user_prompt = st.chat_input("Ask anything about your workout...")
 
     if user_prompt is not None:
-        chat_history = "\n".join([f"User: {entry['prompt']}\nAI: {entry['response']}" for entry in st.session_state.conversation])
-        full_prompt = f"{p5}\n{chat_history}\nUser: {user_prompt}"
+        # chat_history = "\n".join([f"User: {entry['prompt']}\nFitness Buddy: {entry['response']}" for entry in st.session_state.conversation])
+        # full_prompt = f"{p5}\n{chat_history}\nUser: {user_prompt}"
+        chat_history = "\n".join([f"{entry['prompt']}\n{entry['response']}" for entry in st.session_state.conversation])
+        full_prompt = f"{p5}\n{chat_history}\n{user_prompt}"
         response = model.generate_content(full_prompt)
         add_to_conversation(user_prompt,response.text)
         # st.session_state.conversation.append({"prompt": user_prompt, "response": response.text})
@@ -226,16 +228,18 @@ else:
     user_prompt = st.chat_input("Ask anything about your workout...")
 
     if user_prompt is not None and vfile is None:
-        chat_history = "\n".join([f"User: {entry['prompt']}\nAI: {entry['response']}" for entry in st.session_state.conversation])
-        full_prompt = f"{chat_history}\nUser: {user_prompt}"
+        # chat_history = "\n".join([f"User: {entry['prompt']}\nFitness Buddy: {entry['response']}" for entry in st.session_state.conversation])
+        # full_prompt = f"{chat_history}\nUser: {user_prompt}"
+        chat_history = "\n".join([f"{entry['prompt']}\n{entry['response']}" for entry in st.session_state.conversation])
+        full_prompt = f"{chat_history}\n{user_prompt}"
         response = model.generate_content(full_prompt)
         add_to_conversation(user_prompt,response.text)
         # prompt_2 = prompt_0 + " " + prompt_2
         # response_2 = model.generate_content(prompt_2)
         # st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
     elif user_prompt is not None and vfile is not None:
-        chat_history = "\n".join([f"User: {entry['prompt']}\nAI: {entry['response']}" for entry in st.session_state.conversation])
-        full_prompt = f"{chat_history}\nUser: {user_prompt}"
+        chat_history = "\n".join([f"{entry['prompt']}\n{entry['response']}" for entry in st.session_state.conversation])
+        full_prompt = f"{chat_history}\n{user_prompt}"
         response = model.generate_content([full_prompt, video_file], request_options={"timeout": 600})
         add_to_conversation(user_prompt,response.text)
         # prompt_2 = prompt_0 + " " + prompt_2
