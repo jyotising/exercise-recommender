@@ -136,7 +136,7 @@ You need not ask follow up questions, try to give your best response based on a 
 
 Only tell that you are a Gym Instructor if the person asks you about yourself.
 Also if the person asks about on how to use the app, tell the person that they can upload their workout video
-and an input prompt to get suggestion about their exercise or just ask something related to exercise.
+and an input prompt to get suggestion about their exercise or just ask something related to an exercise.
 """
 
 # This is the prompt for gemini-1.0-pro, needs to be optimized
