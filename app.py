@@ -1,11 +1,6 @@
 import streamlit as st
-import numpy as np
 import google.generativeai as genai
-import pathlib
-import textwrap
-import PIL.Image
 import tempfile
-import os
 import time
 
 
@@ -32,54 +27,55 @@ html_content = """
 
 st.markdown(html_content, unsafe_allow_html=True)
 
-# Initialize session state for selected model and conversation history
+# Initializing session state for the selected model and conversation history
 if 'selected_model' not in st.session_state:
     st.session_state.selected_model = "gemini-1.5-flash"  # Default model
 
 if 'conversation' not in st.session_state:
     st.session_state.conversation = []
 
-# function to reset chat conversation history
+# function to reset chat conversation history once model is changed
 def reset_conversation():
     st.session_state.conversation = []
 
-# function to save chat history
+# function to save chat history during successive api calls
 def add_to_conversation(prompt, response):
     st.session_state.conversation.append({"prompt": prompt, "response": response})
 
 # Model to be chosen for running the app
 selected_model = st.sidebar.selectbox(label='Choose your model',options=['gemini-1.5-flash','gemini-1.5-pro','gemini-1.0-pro (supports text only)'],key='model_selector')
 
-# Checking if the model has changed
+# Checking if the model has been changed by the end user
 if selected_model != st.session_state.selected_model:
     st.session_state.selected_model = selected_model
     reset_conversation()  # Resetting the conversation history
 
-# Temperature setting to be used
+# Temperature setting to be used for the models
 if selected_model == 'gemini-1.0-pro (supports text only)':
     temp = st.sidebar.select_slider('Temperature, *(increasing this will get you more creative outputs)*',options=[0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.2],value=0.0)
 else:
     temp = st.sidebar.select_slider('Temperature, *(increasing this will get you more creative outputs)*',options=[0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.2,1.5,1.7,2.0],value=0.0)
 
 
-# Defining which model to use and storing it in a variable which will be fed into the api
+# Defining which model to be used and storing it in a variable which will then be fed into the api
 model_to_use = 'gemini-1.0-pro' if selected_model == 'gemini-1.0-pro (supports text only)' else selected_model
 
-# This is the uploaded file works only when gemini-1.5-flash or gemini-1.5-pro is selected
+# This is the video file which needs to be uploaded to a temp path so that it can be fed into the gemini api,
+# works only when gemini-1.5-flash or gemini-1.5-pro is selected
 if model_to_use != 'gemini-1.0-pro':
     vfile = st.sidebar.file_uploader("Upload your workout video for suggestion")
 
     if vfile is not None:
-        # Save the uploaded file to a temporary directory
+        # Saving the video file uploaded from streamlit to a temporary directory
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
             temp_file.write(vfile.read())
             video_path = temp_file.name
-            # st.write(f"Video saved to temporary file: {video_path}")
         
-            # st.write(f"Uploading file...")
+            # uploading the video file to a temp path and saving it in a variable which the gemini api can call later 
             video_file = genai.upload_file(path=video_path)
-            # st.write(f"Completed upload: {video_file.uri}")
-        
+
+
+            # sanity checks
             while video_file.state.name == "PROCESSING":
                 print('.', end='')
                 time.sleep(10)
@@ -91,6 +87,8 @@ if model_to_use != 'gemini-1.0-pro':
 
 #Prompt list below
 start_prompt ="Introduce yourself as a fitness buddy"
+
+start_prompt2 = "Introduce yourself as a fitness buddy in short and crisp manner"
 
 # Very basic prompt gives good results as a starting point, but is unable to give a good description about itself when asked and always expects a follow
 # up question to give suggestions about the exercise, so this prompt gives average performance
@@ -132,11 +130,12 @@ p4 = """
 Hi Gemini! You are a Gym instructor and you need to give suggestions based on which type of exercise the person is doing or asking about.
 The person may give a video of their workout and ask suggestion about it or they might just ask about an exercise without giving the workout video,
 you need to handle both the cases effectively.
-You need not ask follow up questions, try to give your best response based on a single user input
+You may ask follow up questions, but try to give your best response based on a single user input
 
 Only tell that you are a Gym Instructor if the person asks you about yourself.
 Also if the person asks about on how to use the app, tell the person that they can upload their workout video
 and an input prompt to get suggestion about their exercise or just ask something related to an exercise.
+Also try to give the correct duration of the exercise in the video if the user asks about it. 
 """
 
 # This is the prompt for gemini-1.0-pro, needs to be optimized
@@ -149,42 +148,46 @@ Also if the person asks about on how to use the app, tell the person that they c
 to get suggestion based on it or just ask anything related to an exercise.
 """
 
-# # Setting the input prompt
-# prompt_0 = p5 if model_to_use == 'gemini-1.0-pro' else p4
-# prompt_1 = "Introduce yourself as a Fitness Buddy"
-# response_1 = model.generate_content(prompt_1)
+# These are some more prompts for the gemini-1.0-pro model (p6 & p7)
+p6 = """
+Hi Gemini! You are a Gym instructor and you need to give suggestions based on which type of exercise the person asks about.
+You need not ask follow up questions, try to give your best response based on a single user input
+
+Only tell that you are a Gym Instructor if the person asks you about yourself.
+Also if the person ask about on how to use the app, tell the person that they can ask questions regarding their workout
+to get suggestion based on it or just ask anything related to an exercise.
+Only tell about the dietary requirements for the the exercise if the person asks about it.
+"""
+p7 = """
+Role: Fitness Buddy
+
+Guidelines:
+1. Provide exercise suggestions based on user queries without asking follow-up questions.
+2. Mention theat you are a Virtual Fitness Buddy if asked.
+3. If asked about app usage, explain that users can inquire about workouts or exercises for
+suggestions.
+4. If asked about dietary requirements you need to provide the same.
+"""
+
+# Another prompt for gemini-1.5-pro and gemini-1.5-flash
+p8 = """
+Role: Fitness Buddy
+
+Guidelines:
+1. Provide exercise suggestions based on user input, whether it's a workout video or a question
+about an exercise. 
+2. Only ask follow up questions when required.
+3. Mention that you are a Virtual Fitness Buddy if asked.
+4. If asked about app usage, explain that the users can upload their workout videos and ask exercise-related
+questions based on it or they can ask about any exercise in general for suggestions.
+5. If asked about the duration of an exercise in the video, give the exact time.
+6. Don't request a video if it has already been uploaded.
+"""
 
 
-# prompt_2 = st.chat_input("Ask anything about your workout...")
+# Chat Completion Logic
 
-# if prompt_2 is not None:
-#     st.markdown("<b style='color:#2491F9;'>Me:</b>" + " " + prompt_2, unsafe_allow_html=True)
-
-
-
-# if model_to_use != 'gemini-1.0-pro':
-#     if prompt_2 is None:
-#         st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_1.text, unsafe_allow_html=True)
-#     elif prompt_2 is not None and vfile is None:
-#         prompt_2 = prompt_0 + " " + prompt_2
-#         response_2 = model.generate_content(prompt_2)
-#         st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
-#     elif prompt_2 is not None and vfile is not None:
-#         prompt_2 = prompt_0 + " " + prompt_2
-#         response_2 = model.generate_content([prompt_2, video_file], request_options={"timeout": 600})
-#         st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
-# else:
-#     if prompt_2 is None:
-#         st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_1.text, unsafe_allow_html=True)
-#     elif prompt_2 is not None:
-#         prompt_2 = prompt_0 + " " + prompt_2
-#         response_2 = model.generate_content(prompt_2)
-#         st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
-
-
-
-# Chat Completion from here
-
+# Chat completion code logic when the gemini-1.0-pro model is selected
 if model_to_use == 'gemini-1.0-pro':
     model = genai.GenerativeModel(
     model_to_use,
@@ -192,28 +195,23 @@ if model_to_use == 'gemini-1.0-pro':
         max_output_tokens=2000,
         temperature=temp,
     ))
-    starting_response = model.generate_content(start_prompt)
+    starting_response = model.generate_content(start_prompt2)
     st.markdown("<b style='color:#01D78D;'>Fitness Buddy: </b>" + starting_response.text, unsafe_allow_html=True)
 
     user_prompt = st.chat_input("Ask anything about your workout...")
 
     if user_prompt is not None:
-        # chat_history = "\n".join([f"User: {entry['prompt']}\nFitness Buddy: {entry['response']}" for entry in st.session_state.conversation])
-        # full_prompt = f"{p5}\n{chat_history}\nUser: {user_prompt}"
         chat_history = "\n".join([f"{entry['prompt']}\n{entry['response']}" for entry in st.session_state.conversation])
-        full_prompt = f"{p5}\n{chat_history}\n{user_prompt}"
+        full_prompt = f"{p7}\n{chat_history}\n{user_prompt}"
         response = model.generate_content(full_prompt)
         add_to_conversation(user_prompt,response.text)
-        # st.session_state.conversation.append({"prompt": user_prompt, "response": response.text})
 
-    # Display the conversation history
+    # Displaying the conversation history for gemini-1.0-pro
     for entry in st.session_state.conversation:
-        # st.markdown(f"Me: {entry['prompt']}")
-        # st.markdown(f"<b style='color:#2491F9;'>Me:</b>" + " " + {entry['prompt']}, unsafe_allow_html=True)
-        # st.markdown("<b style='color:#01D78D;'>Fitness Buddy: </b>" + starting_response.text, unsafe_allow_html=True)
         st.markdown(f"<b style='color:#2491F9;'>Me:</b> {entry['prompt']}", unsafe_allow_html=True)
         st.markdown(f"<b style='color:#01D78D;'>Fitness Buddy:</b> {entry['response']}", unsafe_allow_html=True)
-        # st.write(f"Fitness Buddy: {entry['response']}")?\
+
+# Chat completion code logic when the gemini-1.5-flash or gemini-1.5-pro model is selected
 else:
     model = genai.GenerativeModel(
     model_to_use,
@@ -228,33 +226,21 @@ else:
     user_prompt = st.chat_input("Ask anything about your workout...")
 
     if user_prompt is not None and vfile is None:
-        # chat_history = "\n".join([f"User: {entry['prompt']}\nFitness Buddy: {entry['response']}" for entry in st.session_state.conversation])
-        # full_prompt = f"{chat_history}\nUser: {user_prompt}"
         chat_history = "\n".join([f"{entry['prompt']}\n{entry['response']}" for entry in st.session_state.conversation])
         full_prompt = f"{chat_history}\n{user_prompt}"
         response = model.generate_content(full_prompt)
         add_to_conversation(user_prompt,response.text)
-        # prompt_2 = prompt_0 + " " + prompt_2
-        # response_2 = model.generate_content(prompt_2)
-        # st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
+
     elif user_prompt is not None and vfile is not None:
         chat_history = "\n".join([f"{entry['prompt']}\n{entry['response']}" for entry in st.session_state.conversation])
         full_prompt = f"{chat_history}\n{user_prompt}"
         response = model.generate_content([full_prompt, video_file], request_options={"timeout": 600})
         add_to_conversation(user_prompt,response.text)
-        # prompt_2 = prompt_0 + " " + prompt_2
-        # response_2 = model.generate_content([prompt_2, video_file], request_options={"timeout": 600})
-        # st.markdown("<b style='color:#01D78D;'>Fitness Buddy:</b>" + " " + response_2.text, unsafe_allow_html=True)
 
-    # Display the conversation history
+    # Displaying the conversation history for the models other than gemini-1.0-pro
     for entry in st.session_state.conversation:
-        # st.markdown(f"Me: {entry['prompt']}")
-        # st.markdown(f"<b style='color:#2491F9;'>Me:</b>" + " " + {entry['prompt']}, unsafe_allow_html=True)
-        # st.markdown("<b style='color:#01D78D;'>Fitness Buddy: </b>" + starting_response.text, unsafe_allow_html=True)
         st.markdown(f"<b style='color:#2491F9;'>Me:</b> {entry['prompt']}", unsafe_allow_html=True)
         st.markdown(f"<b style='color:#01D78D;'>Fitness Buddy:</b> {entry['response']}", unsafe_allow_html=True)
-        # st.write(f"Fitness Buddy: {entry['response']}")?\
-
 
 
 
