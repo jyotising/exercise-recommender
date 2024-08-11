@@ -1,4 +1,4 @@
-## Fitness Assistant app deployed using Streamlit 
+# Fitness Assistant app deployed using Streamlit 
 
 In this app the user can ask the virtual assistant for suggestions regarding any exercise which they wish to do or they can also upload
 a video of their workout and ask the assistant for any improvements on the same.
