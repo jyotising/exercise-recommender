@@ -10,7 +10,7 @@ Currently the app has support for the following llm's(large-language-models):
 
 Following are the steps to use the app:
 1. The user needs to navigate to the following app link -> [test-your-fitness.streamlit.app](https://test-your-fitness.streamlit.app/).
-2. In the sidebar of the app the user can select which model they want to interact with from the dropdown menu.
+2. In the left sidebar of the app the user can select which model they want to interact with from the dropdown menu.
 3. There is also a temperature setting which can be adjusted and the user can try getting fancy by increasing the temperature to get more creative outputs.
 4. After setting the model and temperature parameters, the user can start interacting with the app.
 5. The user can also upload a workout video for suggestions, this will work only when the video has been uploaded and an input prompt has been submitted by the user **(Note: This functionality only works for gemini-1.5-flash and gemini-1.5-pro)**.
